@@ -1,0 +1,20 @@
+import './env.js';
+import cors from 'cors'; import express from 'express'; import { z } from 'zod';
+import { login, register, userFromToken, userProfile } from './auth.js';
+import { getKeys, keyStatus, saveKeys } from './key-vault.js';
+import { generateSrtFromMedia, translate } from './providers.js';
+const app = express(); app.use(cors({ origin: process.env.WEB_ORIGIN ?? 'http://localhost:5173' })); app.use(express.json({ limit: '80mb' }));
+const credentials = z.object({ email: z.string().email(), password: z.string().min(10).max(128) });
+const keysPayload = z.object({ provider: z.enum(['gemini', 'grok']), keys: z.array(z.string().min(8)).min(1).max(10) });
+const translation = z.object({ provider: z.enum(['gemini', 'grok']), model: z.string().min(1).max(100), subtitles: z.array(z.object({ id: z.number(), startTime: z.string(), endTime: z.string(), originalText: z.string(), translatedText: z.string().optional() })).min(1).max(500), settings: z.object({ genre: z.string().max(80), customRules: z.string().max(1000) }) });
+const mediaGeneration = z.object({ model: z.string().min(1).max(100), base64: z.string().min(100), mimeType: z.string().min(3).max(100), settings: z.object({ audioLanguage: z.string().max(80), outputStyle: z.enum(['burmese', 'dual', 'original']), genre: z.string().max(80), customRules: z.string().max(1000) }) });
+function user(req: express.Request, res: express.Response) { const id = userFromToken(req.header('authorization')); if (!id) { res.status(401).json({ error: 'Sign in is required.' }); return null; } return id; }
+app.get('/health', (_req, res) => res.json({ ok: true }));
+app.post('/v1/auth/register', async (req, res) => { try { const input = credentials.parse(req.body); res.status(201).json({ token: await register(input.email, input.password) }); } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Registration failed.' }); } });
+app.post('/v1/auth/login', async (req, res) => { try { const input = credentials.parse(req.body); res.json({ token: await login(input.email, input.password) }); } catch (error) { res.status(401).json({ error: error instanceof Error ? error.message : 'Login failed.' }); } });
+app.get('/v1/me', async (req, res) => { const id = user(req, res); if (!id) return; const profile = await userProfile(id); if (!profile) return res.status(404).json({ error: 'User not found.' }); res.json(profile); });
+app.get('/v1/keys', async (req, res) => { const id = user(req, res); if (id) res.json(await keyStatus(id)); });
+app.put('/v1/keys', async (req, res) => { const id = user(req, res); if (!id) return; try { const input = keysPayload.parse(req.body); await saveKeys(id, input.provider, input.keys); res.status(204).end(); } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Invalid keys.' }); } });
+app.post('/v1/translations/srt', async (req, res) => { const id = user(req, res); if (!id) return; try { const input = translation.parse(req.body); const keys = await getKeys(id, input.provider); if (!keys.length) return res.status(422).json({ error: `Save a ${input.provider} API key first.` }); res.json({ subtitles: await translate(input.provider, keys, input.model, input.subtitles, input.settings) }); } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Translation failed.' }); } });
+app.post('/v1/generations/video-srt', async (req, res) => { const id = user(req, res); if (!id) return; try { const input = mediaGeneration.parse(req.body); const keys = await getKeys(id, 'gemini'); if (!keys.length) return res.status(422).json({ error: 'Save a Gemini API key first.' }); res.json(await generateSrtFromMedia(keys, input.model, { base64: input.base64, mimeType: input.mimeType, ...input.settings })); } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Video-to-SRT generation failed.' }); } });
+app.listen(Number(process.env.PORT ?? 8787), () => console.log('API listening on port ' + (process.env.PORT ?? 8787)));

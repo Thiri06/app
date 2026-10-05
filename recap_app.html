@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burmese SRT - AI Subtitle Translator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        },
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                        bordercolor: '#334155'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        burmese: ['Padauk', 'Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar for editor views */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .burmese-text {
+            font-family: 'Padauk', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Header Navigation -->
+    <header class="border-b border-bordercolor bg-cardbg/80 backdrop-blur sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        Burmese SRT <span class="text-xs font-semibold px-2 py-0.5 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">AI Pro Suite</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Smart AI Subtitle & Video Translation System</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <!-- Key Counter Badge -->
+                <button onclick="toggleKeyModal()" class="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 border border-bordercolor text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"></path>
+                    </svg>
+                    <span>API Keys Pool:</span>
+                    <span id="keyCounterBadge" class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono font-bold">0 Keys</span>
+                </button>
+
+                <!-- Load Sample Button -->
+                <button onclick="loadSampleSRT()" class="hidden sm:flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium border border-bordercolor transition">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    </svg>
+                    <span>Load Demo Subtitle</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Configuration Sidebar (4 cols) -->
+        <section class="lg:col-span-4 space-y-5">
+
+            <!-- Subtitle Tool Mode Selection -->
+            <div class="bg-cardbg rounded-2xl border border-bordercolor p-4 shadow-sm">
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-2">Translation Mode</label>
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900/60 rounded-xl border border-bordercolor">
+                    <button id="modeTranslateBtn" onclick="switchMode('translate')" class="py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white shadow transition flex justify-center items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1 4h6m-6 4h6m-6 4h6M3 19h18"></path></svg>
+                        Translate SRT
+                    </button>
+                    <button id="modeVideoBtn" onclick="switchMode('video')" class="py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition flex justify-center items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        Video to SRT
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video-to-SRT Specific Configuration Panel -->
+            <div id="videoSettingsPanel" class="hidden bg-cardbg rounded-2xl border border-bordercolor p-5 space-y-4 shadow-sm">
+                <label class="text-xs font-semibold uppercase tracking-wider text-amber-400 block">Video Speech Options</label>
+                
+                <div>
+                    <label class="text-xs text-slate-300 block mb-1">Spoken Audio Language</label>
+                    <select id="audioLangSelect" class="w-full bg-slate-900 border border-bordercolor rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        <option value="auto">Auto-Detect Language (အလိုအလျောက်)</option>
+                        <option value="English">English (အင်္ဂလိပ်)</option>
+                        <option value="Korean">Korean (ကိုရီးယား)</option>
+                        <option value="Japanese">Japanese (ဂျပန်)</option>
+                        <option value="Chinese">Chinese (တရုတ်)</option>
+                        <option value="Thai">Thai (ထိုင်း)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-300 block mb-1">Generated Output Format</label>
+                    <select id="speechOutputStyle" class="w-full bg-slate-900 border border-bordercolor rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        <option value="burmese">Direct Burmese Translation (မြန်မာဘာသာသီးသန့်)</option>
+                        <option value="dual">Bilingual Subtitles (မူရင်း + မြန်မာ နှစ်ဘာသာ)</option>
+                        <option value="original">Original Spoken Language Only (မူရင်းစကားပြော)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- AI Model Selector -->
+            <div class="bg-cardbg rounded-2xl border border-bordercolor p-5 space-y-4 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-400">AI Model Engine</label>
+                    <span id="recommendedKeysTag" class="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded-full">Requires 1+ Key</span>
+                </div>
+
+                <select id="modelSelect" onchange="updateModelInfo()" class="w-full bg-slate-900 border border-bordercolor rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition">
+                    <option value="model-1">Model 1 (Gemini Flash Large - Best Result)</option>
+                    <option value="model-2" selected>Model 2 (Gemini 3 Flash Standard - Recommended)</option>
+                    <option value="model-3">Model 3 (Gemini Flash Lite - Fast Speed)</option>
+                    <option value="model-4">Model 4 (Gemini 2.5 Flash)</option>
+                    <option value="model-5">Model 5 (Gemini 3.6 Flash Variant)</option>
+                </select>
+
+                <div id="modelDescBox" class="bg-slate-900/80 rounded-xl p-3 text-xs text-slate-300 border border-slate-800 space-y-1">
+                    <p class="font-medium text-brand-400" id="modelTitle">Model 2 (3.5 Flash)</p>
+                    <p class="text-slate-400 text-[11px]" id="modelDesc">Balanced tier providing high speed and high grammatical context accuracy for Burmese dialogues.</p>
+                </div>
+
+                <!-- Batch Splitting -->
+                <div class="pt-2 border-t border-slate-800">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-xs font-semibold text-slate-300">Split Batches</label>
+                        <span id="batchCountDisplay" class="text-xs font-mono font-bold text-brand-400">2 Batches</span>
+                    </div>
+                    <input type="range" id="batchRange" min="1" max="10" value="2" oninput="document.getElementById('batchCountDisplay').innerText = this.value + ' Batches (usages)'" class="w-full accent-brand-500 bg-slate-800 rounded-lg cursor-pointer h-1.5">
+                    <p class="text-[10px] text-slate-400 mt-1">Splits large SRTs into multiple parallel/sequential chunks to bypass rate limits.</p>
+                </div>
+            </div>
+
+            <!-- Context & Customization Settings -->
+            <div class="bg-cardbg rounded-2xl border border-bordercolor p-5 space-y-4 shadow-sm">
+                <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Context & Formatting Rules</label>
+
+                <!-- Movie Genre -->
+                <div>
+                    <label class="text-xs text-slate-300 block mb-1">Movie / Content Genre</label>
+                    <select id="genreSelect" class="w-full bg-slate-900 border border-bordercolor rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+                        <option value="Drama">Drama / Emotional (ဒရာမာ)</option>
+                        <option value="Action">Action / Thriller (အက်ရှင်)</option>
+                        <option value="Comedy">Comedy (ဟာသ)</option>
+                        <option value="Romance">Romance / Love (အချစ်)</option>
+                        <option value="Kdrama">K-Drama (ကိုရီးယားဇာတ်လမ်းတွဲ)</option>
+                        <option value="Anime">Anime / Animation (အန်နီမေးရှင်း)</option>
+                        <option value="Horror">Horror / Supernatural (သရဲ/ထိတ်လန့်)</option>
+                        <option value="Historical">Historical / Period (သမိုင်းဝင်)</option>
+                        <option value="Crime">Crime / Mystery (မှုခင်း)</option>
+                    </select>
+                </div>
+
+                <!-- Toggles -->
+                <div class="space-y-2 pt-1">
+                    <label class="flex items-center space-x-2.5 cursor-pointer">
+                        <input type="checkbox" id="translateNamesToggle" checked class="w-4 h-4 rounded text-brand-600 bg-slate-900 border-bordercolor focus:ring-brand-500">
+                        <span class="text-xs text-slate-300">Translate proper names into Burmese (အမည်များ မြန်မာလို)</span>
+                    </label>
+                    <label class="flex items-center space-x-2.5 cursor-pointer">
+                        <input type="checkbox" id="reduceSpaceToggle" checked class="w-4 h-4 rounded text-brand-600 bg-slate-900 border-bordercolor focus:ring-brand-500">
+                        <span class="text-xs text-slate-300">Reduce extra whitespaces & line gaps (Space လျှော့မည်)</span>
+                    </label>
+                </div>
+
+                <!-- Custom Rules Textarea -->
+                <div>
+                    <label class="text-xs text-slate-300 block mb-1">Custom Rules (စိတ်ကြိုက် စည်းမျဉ်းများ)</label>
+                    <textarea id="customRulesInput" rows="2" placeholder="e.g. Translate 'Bro' as 'ကိုကြီး', use respectful honorifics..." class="w-full bg-slate-900 border border-bordercolor rounded-xl p-2.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-brand-500 resize-none"></textarea>
+                </div>
+
+                <!-- Output Format -->
+                <div>
+                    <label class="text-xs text-slate-300 block mb-1">Target Subtitle Format</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center justify-center p-2 rounded-xl bg-slate-900 border border-bordercolor cursor-pointer text-xs font-semibold has-[:checked]:border-brand-500 has-[:checked]:text-brand-400">
+                            <input type="radio" name="outputFormat" value="srt" checked class="hidden">
+                            SubRip (.SRT)
+                        </label>
+                        <label class="flex items-center justify-center p-2 rounded-xl bg-slate-900 border border-bordercolor cursor-pointer text-xs font-semibold has-[:checked]:border-brand-500 has-[:checked]:text-brand-400">
+                            <input type="radio" name="outputFormat" value="ass" class="hidden">
+                            Advanced SubStation (.ASS)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button Dynamic Dispatcher -->
+            <button id="startTranslateBtn" onclick="handleMainAction()" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-500 hover:to-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-brand-500/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <span id="startBtnText" class="burmese-text text-sm">ဘာသာပြန်မည် (Start Translation)</span>
+            </button>
+        </section>
+
+        <!-- Right Work Area / Subtitle Editor (8 cols) -->
+        <section class="lg:col-span-8 flex flex-col space-y-4">
+
+            <!-- File Upload Dropzone / Video Input area -->
+            <div id="dropzoneContainer" class="bg-cardbg rounded-2xl border-2 border-dashed border-bordercolor p-6 text-center hover:border-brand-500/50 transition cursor-pointer relative group" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept=".srt,.vtt,.txt,.mp4,.mkv,.avi,.webm,.mp3,.wav,.m4a" class="hidden" onchange="handleFileSelect(event)">
+                
+                <div id="uploadDefaultState" class="space-y-2">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-800 text-brand-400 flex items-center justify-center mx-auto group-hover:scale-110 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                    </div>
+                    <p id="dropzoneTitleText" class="text-sm font-semibold text-slate-200">Drop your subtitle file (.srt, .vtt) or Video here</p>
+                    <p id="dropzoneDescText" class="text-xs text-slate-400">Supports SubRip files (.srt) or video/audio (.mp4, .mkv, .mp3) for auto video-to-SRT speech recognition</p>
+                </div>
+
+                <div id="uploadActiveState" class="hidden flex items-center justify-between bg-slate-900 border border-bordercolor rounded-xl p-3 text-left">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <div class="p-2 rounded-lg bg-brand-500/10 text-brand-400 flex-shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <div class="truncate">
+                            <p id="loadedFileName" class="text-xs font-bold text-slate-200 truncate">subtitles.srt</p>
+                            <p id="loadedFileDetails" class="text-[11px] text-slate-400">128 subtitle lines loaded</p>
+                        </div>
+                    </div>
+                    <button onclick="event.stopPropagation(); resetUploadedFile()" class="p-1.5 text-slate-400 hover:text-rose-400 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video Player Preview Container (Shown when a video file is loaded) -->
+            <div id="videoPreviewContainer" class="hidden bg-slate-950 rounded-2xl border border-bordercolor p-2 overflow-hidden shadow-lg">
+                <video id="videoPreviewPlayer" controls class="w-full max-h-64 rounded-xl bg-black object-contain"></video>
+            </div>
+
+            <!-- Translation Progress Bar Section -->
+            <div id="progressSection" class="hidden bg-cardbg rounded-2xl border border-bordercolor p-4 space-y-2 shadow-sm">
+                <div class="flex justify-between items-center text-xs font-semibold">
+                    <span id="progressStatusText" class="text-brand-400 flex items-center gap-2">
+                        <svg class="animate-spin w-3.5 h-3.5 text-brand-400" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Translating Batch 1 of 2...
+                    </span>
+                    <span id="progressPercent" class="font-mono text-slate-300">0%</span>
+                </div>
+                <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                    <div id="progressBarFill" class="bg-gradient-to-r from-brand-600 to-emerald-400 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Subtitle Interactive Side-by-Side Editor & Results Area -->
+            <div class="bg-cardbg rounded-2xl border border-bordercolor flex-1 flex flex-col overflow-hidden shadow-sm min-h-[420px]">
+                
+                <!-- Subtitle Header Controls -->
+                <div class="px-4 py-3 border-b border-bordercolor bg-slate-900/50 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Subtitle Line Inspector</span>
+                        <span id="subCountBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">0 Lines</span>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="downloadResultFile()" id="downloadBtn" disabled class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-40 disabled:hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Export File</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Column Titles -->
+                <div class="grid grid-cols-1 md:grid-cols-2 bg-slate-900 text-slate-400 text-[11px] font-semibold border-b border-bordercolor divide-y md:divide-y-0 md:divide-x divide-bordercolor">
+                    <div class="px-4 py-2">Original Text & Timestamp</div>
+                    <div class="px-4 py-2 flex justify-between items-center">
+                        <span>Burmese AI Translation</span>
+                        <span class="text-[10px] text-slate-500">Editable Inline</span>
+                    </div>
+                </div>
+
+                <!-- Subtitle List Container -->
+                <div id="subtitleListContainer" class="flex-1 overflow-y-auto divide-y divide-bordercolor/60 max-h-[500px] p-2 space-y-1">
+                    <div class="text-center py-20 text-slate-500 space-y-2">
+                        <svg class="w-10 h-10 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p class="text-xs">No subtitle file loaded. Drag & drop an .SRT file or click "Load Demo Subtitle".</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- API Key Manager Modal -->
+    <div id="keyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-cardbg border border-bordercolor rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-bordercolor pb-3">
+                <h3 class="font-bold text-slate-100 text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 0121 9z"></path></svg>
+                    Gemini API Key Pool Manager
+                </h3>
+                <button onclick="toggleKeyModal()" class="text-slate-400 hover:text-slate-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-400">Enter your Google Gemini API key(s) below. Adding multiple keys enables automatic rotation to prevent API quota throttling during heavy subtitle translations.</p>
+
+            <!-- Key List Input -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-300">API Keys (One key per line)</label>
+                <textarea id="keyPoolInput" rows="5" placeholder="AIzaSyA...&#10;AIzaSyB...&#10;AIzaSyC..." class="w-full bg-slate-900 border border-bordercolor rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500 resize-none"></textarea>
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="saveKeys()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-xs transition">Save Keys Pool</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2"></div>
+
+    <script>
+        const state = {
+            apiKeys: [],
+            currentKeyIndex: 0,
+            subtitles: [], // Array of { id, startTime, endTime, originalText, translatedText }
+            fileName: 'translated_subtitles.srt',
+            rawMediaFile: null,
+            mediaBase64: null,
+            mediaMimeType: '',
+            isTranslating: false,
+            currentMode: 'translate', // 'translate' | 'video'
+        };
+
+        // UI Model Info Definitions mapped to active Gemini API model identifiers
+        const modelInfoMap = {
+            'model-1': {
+                id: 'gemini-2.5-pro',
+                title: 'Model 1 (Gemini 2.5 Pro - High Accuracy)',
+                desc: 'Delivers top-tier Burmese narrative fluency and contextual translation. Recommended for complex dialogues.',
+                req: 'Requires 1+ Key'
+            },
+            'model-2': {
+                id: 'gemini-2.5-flash',
+                title: 'Model 2 (Gemini 2.5 Flash Standard)',
+                desc: 'Balanced tier providing high speed and high grammatical context accuracy for Burmese dialogues.',
+                req: 'Requires 1+ Key'
+            },
+            'model-3': {
+                id: 'gemini-2.0-flash-lite',
+                title: 'Model 3 (Gemini 2.0 Flash Lite)',
+                desc: 'Lightweight model designed for ultra-fast translations. Excellent for quick drafts.',
+                req: 'Requires 1 Key'
+            },
+            'model-4': {
+                id: 'gemini-2.0-flash',
+                title: 'Model 4 (Gemini 2.0 Flash)',
+                desc: 'Fast tier offering rapid response times with solid translation structure.',
+                req: 'Requires 1 Key'
+            },
+            'model-5': {
+                id: 'gemini-1.5-flash',
+                title: 'Model 5 (Gemini 1.5 Flash)',
+                desc: 'Reliable flash model variant for general subtitle translation tasks.',
+                req: 'Requires 1+ Key'
+            }
+        };
+
+        // Helper: Robust fetch with Timeout and Automatic API Key Rotation
+        async function fetchWithRetry(urlGenerator, payload, options = {}) {
+            if (!state.apiKeys || state.apiKeys.length === 0) {
+                throw new Error("No API keys configured.");
+            }
+
+            const maxRetries = Math.max(state.apiKeys.length * 2, 3);
+            let lastError = null;
+
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                const apiKey = state.apiKeys[state.currentKeyIndex];
+                // Rotate key index for next call
+                state.currentKeyIndex = (state.currentKeyIndex + 1) % state.apiKeys.length;
+
+                const url = urlGenerator(apiKey);
+                const controller = new AbortController();
+                const timeoutMs = options.timeoutMs || 120000; // 120 second timeout
+                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        const errMsg = errData.error?.message || `HTTP ${response.status}`;
+                        
+                        // Retry on Rate limit (429), Server Error (5xx), or forbidden key
+                        if (response.status === 429 || response.status >= 500 || response.status === 403) {
+                            console.warn(`Key attempt ${attempt + 1} failed (${errMsg}). Rotating key...`);
+                            lastError = new Error(`Key ${attempt + 1} Error: ${errMsg}`);
+                            continue; 
+                        }
+                        throw new Error(errMsg);
+                    }
+
+                    const data = await response.json();
+                    return data;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (err.name === 'AbortError') {
+                        lastError = new Error(`Request timed out after ${timeoutMs/1000} seconds. Retrying with key pool...`);
+                    } else {
+                        lastError = err;
+                    }
+                    console.warn(`Attempt ${attempt + 1} error: ${lastError.message}`);
+                }
+            }
+            throw lastError || new Error("All API keys in the pool failed to respond.");
+        }
+
+        // Window Load Initialization
+        window.onload = function() {
+            // Load saved keys from localStorage if available
+            const savedKeys = localStorage.getItem('burmese_srt_keys');
+            if (savedKeys) {
+                state.apiKeys = JSON.parse(savedKeys);
+                document.getElementById('keyPoolInput').value = state.apiKeys.join('\n');
+                updateKeyBadge();
+            }
+        };
+
+        function toggleKeyModal() {
+            const modal = document.getElementById('keyModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function saveKeys() {
+            const raw = document.getElementById('keyPoolInput').value;
+            const lines = raw.split('\n').map(k => k.trim()).filter(k => k.length > 5);
+            state.apiKeys = lines;
+            localStorage.setItem('burmese_srt_keys', JSON.stringify(lines));
+            updateKeyBadge();
+            toggleKeyModal();
+            showToast(`Saved ${lines.length} API key(s) to pool!`, 'success');
+        }
+
+        function updateKeyBadge() {
+            const badge = document.getElementById('keyCounterBadge');
+            badge.innerText = `${state.apiKeys.length} Key(s)`;
+        }
+
+        function updateModelInfo() {
+            const val = document.getElementById('modelSelect').value;
+            const info = modelInfoMap[val];
+            if (info) {
+                document.getElementById('modelTitle').innerText = info.title;
+                document.getElementById('modelDesc').innerText = info.desc;
+                document.getElementById('recommendedKeysTag').innerText = info.req;
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-900/90 border-emerald-700 text-emerald-200' :
+                            type === 'error' ? 'bg-rose-900/90 border-rose-700 text-rose-200' :
+                            'bg-slate-800/90 border-slate-700 text-slate-200';
+
+            toast.className = `px-4 py-3 rounded-xl border ${bgClass} shadow-xl text-xs font-semibold backdrop-blur transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerText = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function switchMode(mode) {
+            state.currentMode = mode;
+            const tBtn = document.getElementById('modeTranslateBtn');
+            const vBtn = document.getElementById('modeVideoBtn');
+            const videoPanel = document.getElementById('videoSettingsPanel');
+            const btnText = document.getElementById('startBtnText');
+            const dropTitle = document.getElementById('dropzoneTitleText');
+            const dropDesc = document.getElementById('dropzoneDescText');
+
+            if (mode === 'translate') {
+                tBtn.className = 'py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white shadow transition flex justify-center items-center gap-1.5';
+                vBtn.className = 'py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition flex justify-center items-center gap-1.5';
+                videoPanel.classList.add('hidden');
+                btnText.innerHTML = 'ဘာသာပြန်မည် (Start SRT Translation)';
+                dropTitle.innerText = 'Drop your subtitle file (.srt, .vtt) here';
+                dropDesc.innerText = 'Upload an existing English/Foreign SRT subtitle file to translate into Burmese';
+                showToast('Switched to SRT Translation mode', 'info');
+            } else {
+                vBtn.className = 'py-2 text-xs font-semibold rounded-lg bg-brand-600 text-white shadow transition flex justify-center items-center gap-1.5';
+                tBtn.className = 'py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition flex justify-center items-center gap-1.5';
+                videoPanel.classList.remove('hidden');
+                btnText.innerHTML = 'ဗီဒီယိုမှ စာတန်းထိုး ထုတ်မည် (Generate SRT from Video)';
+                dropTitle.innerText = 'Drop your Video or Audio file (.mp4, .mkv, .mp3) here';
+                dropDesc.innerText = 'AI will automatically detect speech, create precise timestamps & generate Burmese SRT subtitles';
+                showToast('Switched to Video-to-SRT Speech Recognition mode', 'info');
+            }
+        }
+
+        function handleMainAction() {
+            if (state.currentMode === 'translate') {
+                runTranslationProcess();
+            } else {
+                runVideoToSrtProcess();
+            }
+        }
+
+        function parseSRT(srtContent) {
+            const normalized = srtContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const blocks = normalized.trim().split(/\n\n+/);
+            const parsed = [];
+
+            blocks.forEach((block, idx) => {
+                const lines = block.split('\n');
+                if (lines.length >= 2) {
+                    let idIndex = 0;
+                    if (!lines[0].includes('-->')) {
+                        idIndex = 1;
+                    }
+                    const timeLine = lines[idIndex] || '';
+                    if (timeLine.includes('-->')) {
+                        const times = timeLine.split('-->').map(s => s.trim());
+                        const textLines = lines.slice(idIndex + 1).join('\n');
+                        parsed.push({
+                            id: idx + 1,
+                            startTime: times[0],
+                            endTime: times[1],
+                            originalText: textLines,
+                            translatedText: ''
+                        });
+                    }
+                }
+            });
+            return parsed;
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            state.rawMediaFile = file;
+            state.fileName = file.name.replace(/\.[^/.]+$/, "") + "_burmese.srt";
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            const isMedia = ['mp4', 'mkv', 'avi', 'webm', 'mp3', 'wav', 'm4a'].includes(ext);
+
+            if (isMedia) {
+                // Video/Audio file loaded
+                if (state.currentMode !== 'video') {
+                    switchMode('video');
+                }
+
+                // Video player preview setup
+                if (file.type.startsWith('video/')) {
+                    const player = document.getElementById('videoPreviewPlayer');
+                    player.src = URL.createObjectURL(file);
+                    document.getElementById('videoPreviewContainer').classList.remove('hidden');
+                }
+
+                updateFileUI(file.name, `Media File (${(file.size / (1024 * 1024)).toFixed(1)} MB)`);
+                showToast(`Loaded media file: ${file.name}. Ready for Video-to-SRT generation!`, 'success');
+            } else {
+                // Standard SRT Subtitle file
+                document.getElementById('videoPreviewContainer').classList.add('hidden');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    state.subtitles = parseSRT(content);
+                    updateFileUI(file.name, `${state.subtitles.length} subtitle entries detected`);
+                    renderSubtitlesList();
+                    showToast(`Successfully loaded ${state.subtitles.length} subtitle entries`, 'success');
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function resetUploadedFile() {
+            state.subtitles = [];
+            state.rawMediaFile = null;
+            state.mediaBase64 = null;
+            document.getElementById('uploadDefaultState').classList.remove('hidden');
+            document.getElementById('uploadActiveState').classList.add('hidden');
+            document.getElementById('videoPreviewContainer').classList.add('hidden');
+            document.getElementById('fileInput').value = '';
+            document.getElementById('downloadBtn').disabled = true;
+            renderSubtitlesList();
+        }
+
+        function updateFileUI(filename, details) {
+            document.getElementById('uploadDefaultState').classList.add('hidden');
+            document.getElementById('uploadActiveState').classList.remove('hidden');
+            document.getElementById('loadedFileName').innerText = filename;
+            document.getElementById('loadedFileDetails').innerText = details;
+        }
+
+        function renderSubtitlesList() {
+            const container = document.getElementById('subtitleListContainer');
+            document.getElementById('subCountBadge').innerText = `${state.subtitles.length} Lines`;
+
+            if (state.subtitles.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 text-slate-500 space-y-2">
+                        <svg class="w-10 h-10 mx-auto text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p class="text-xs">No subtitle file generated or loaded. Upload a video or .SRT file to begin.</p>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            state.subtitles.forEach((sub, i) => {
+                html += `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 p-2 rounded-xl bg-slate-900/40 hover:bg-slate-900/80 border border-slate-800/80 transition text-xs">
+                    <!-- Left: Original -->
+                    <div class="space-y-1 pr-2">
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                            <span class="bg-slate-800 px-1.5 py-0.5 rounded text-brand-400 font-bold">#${sub.id}</span>
+                            <span class="cursor-pointer hover:text-brand-300" onclick="seekVideoTo('${sub.startTime}')">${sub.startTime} ➔ ${sub.endTime}</span>
+                        </div>
+                        <p class="text-slate-200 leading-relaxed font-sans">${escapeHtml(sub.originalText || '(Audio Speech Line)')}</p>
+                    </div>
+
+                    <!-- Right: Translation Input -->
+                    <div class="flex flex-col justify-center">
+                        <textarea 
+                            onchange="updateSubTranslation(${i}, this.value)"
+                            placeholder="ဘာသာပြန် ရလဒ်..."
+                            class="w-full bg-slate-950/80 border border-bordercolor rounded-lg p-2 text-xs text-slate-100 font-burmese focus:outline-none focus:border-brand-500 resize-none h-14 leading-relaxed"
+                        >${escapeHtml(sub.translatedText || sub.originalText)}</textarea>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function seekVideoTo(timeStr) {
+            const player = document.getElementById('videoPreviewPlayer');
+            if (player && player.src) {
+                // Parse "00:01:20,500" into seconds
+                const parts = timeStr.replace(',', '.').split(':');
+                if (parts.length === 3) {
+                    const secs = parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+                    player.currentTime = secs;
+                    player.play();
+                }
+            }
+        }
+
+        function escapeHtml(text) {
+            return (text || '')
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function updateSubTranslation(index, value) {
+            if (state.subtitles[index]) {
+                state.subtitles[index].translatedText = value;
+            }
+        }
+
+        function loadSampleSRT() {
+            const sampleData = `1
+00:00:01,200 --> 00:00:04,500
+Hey bro, did you check out the new movie last night?
+
+2
+00:00:04,800 --> 00:00:08,100
+Yes! The visual effects and action sequences were incredible.
+
+3
+00:00:08,400 --> 00:00:12,000
+We should definitely watch the sequel together next week in IMAX.
+
+4
+00:00:12,300 --> 00:00:16,200
+Sounds like a plan! Let me know what time works best for you.`;
+
+            state.subtitles = parseSRT(sampleData);
+            state.fileName = "sample_burmese.srt";
+            updateFileUI("sample_movie_dialog.srt", `${state.subtitles.length} entries`);
+            renderSubtitlesList();
+            document.getElementById('downloadBtn').disabled = false;
+            showToast('Loaded sample movie subtitles!', 'success');
+        }
+
+        async function runVideoToSrtProcess() {
+            if (!state.rawMediaFile) {
+                showToast('Please upload a video or audio file first!', 'error');
+                return;
+            }
+
+            if (state.apiKeys.length === 0) {
+                showToast('Please add at least 1 Gemini API Key in the Key Manager!', 'error');
+                toggleKeyModal();
+                return;
+            }
+
+            // File size warning limit (~35MB for inline base64)
+            const fileSizeMB = state.rawMediaFile.size / (1024 * 1024);
+            if (fileSizeMB > 40) {
+                showToast(`Warning: ${fileSizeMB.toFixed(1)}MB file detected. Processing may take up to 1-2 minutes.`, 'info');
+            }
+
+            state.isTranslating = true;
+            document.getElementById('startTranslateBtn').disabled = true;
+            document.getElementById('progressSection').classList.remove('hidden');
+
+            let simulatedPercent = 15;
+            let secondsElapsed = 0;
+            
+            document.getElementById('progressStatusText').innerHTML = `
+                <svg class="animate-spin w-3.5 h-3.5 text-brand-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Reading media stream & converting payload...`;
+            document.getElementById('progressPercent').innerText = `${simulatedPercent}%`;
+            document.getElementById('progressBarFill').style.width = `${simulatedPercent}%`;
+
+            // Active Progress Timer Tick to prevent UI freeze appearance
+            const progressTimer = setInterval(() => {
+                secondsElapsed += 1;
+                if (simulatedPercent < 90) {
+                    simulatedPercent += (simulatedPercent < 50 ? 2 : 1);
+                }
+                
+                let phaseMsg = "Analyzing audio speech & timing with Gemini AI...";
+                if (secondsElapsed > 15) phaseMsg = "Transcribing multi-channel speech audio...";
+                if (secondsElapsed > 35) phaseMsg = "Generating timestamped Burmese dialogue entries...";
+                
+                document.getElementById('progressStatusText').innerHTML = `
+                    <svg class="animate-spin w-3.5 h-3.5 text-brand-400" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    ${phaseMsg} (${secondsElapsed}s elapsed)`;
+                document.getElementById('progressPercent').innerText = `${simulatedPercent}%`;
+                document.getElementById('progressBarFill').style.width = `${simulatedPercent}%`;
+            }, 1000);
+
+            try {
+                // Convert media file to base64
+                const base64Data = await readFileAsBase64(state.rawMediaFile);
+                const fileMime = state.rawMediaFile.type || 'video/mp4';
+
+                const audioLang = document.getElementById('audioLangSelect').value;
+                const outputStyle = document.getElementById('speechOutputStyle').value;
+                const genre = document.getElementById('genreSelect').value;
+                const customRules = document.getElementById('customRulesInput').value;
+
+                // Call Multimodal Gemini Speech-to-SRT Engine with key rotation and retry
+                const generatedSubtitles = await callGeminiVideoToSRT(base64Data, fileMime, {
+                    audioLang, outputStyle, genre, customRules
+                });
+
+                clearInterval(progressTimer);
+
+                state.subtitles = generatedSubtitles;
+                renderSubtitlesList();
+
+                document.getElementById('progressBarFill').style.width = '100%';
+                document.getElementById('progressPercent').innerText = '100%';
+                document.getElementById('progressStatusText').innerText = 'Video-to-SRT Subtitle Generation Complete!';
+                document.getElementById('downloadBtn').disabled = false;
+                showToast(`Generated ${generatedSubtitles.length} timestamped Burmese subtitles from video!`, 'success');
+
+            } catch (err) {
+                clearInterval(progressTimer);
+                console.error("Video-to-SRT Error:", err);
+                showToast(`Video Processing Error: ${err.message}`, 'error');
+                document.getElementById('progressStatusText').innerText = `Processing failed: ${err.message}`;
+                document.getElementById('progressBarFill').classList.add('bg-rose-500');
+            } finally {
+                document.getElementById('startTranslateBtn').disabled = false;
+                state.isTranslating = false;
+            }
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result;
+                    const base64 = result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function callGeminiVideoToSRT(base64Data, mimeType, options) {
+            const modelKey = document.getElementById('modelSelect').value;
+            const modelConfig = modelInfoMap[modelKey] || modelInfoMap['model-2'];
+            const targetModelId = modelConfig.id || 'gemini-2.5-flash';
+
+            const systemPrompt = `You are a professional video subtitler and audio speech-to-text translator for Burmese video streaming platforms.
+Your job is to listen to the spoken dialogue in the provided video/audio file and generate timestamped SRT subtitle entries.
+
+Genre Context: ${options.genre}
+Spoken Language Hint: ${options.audioLang}
+Output Requirement: ${options.outputStyle === 'burmese' ? 'Provide direct natural, fluent Burmese dialogue.' : options.outputStyle === 'dual' ? 'Provide English/original dialogue followed by Burmese translation on the next line.' : 'Provide accurate original spoken language.'}
+${options.customRules ? 'Additional Custom Rule: ' + options.customRules : ''}
+
+CRITICAL RULES:
+1. Provide accurate timestamps matching the exact spoken dialogue in format: 00:00:00,000 --> 00:00:00,000
+2. Output a strictly valid JSON array of objects representing subtitles.
+3. Each object must have fields:
+   - "id": integer starting from 1
+   - "startTime": string in format "00:00:00,000"
+   - "endTime": string in format "00:00:00,000"
+   - "originalText": original spoken words (or empty string)
+   - "translatedText": translated Burmese text matching the dialogue`;
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: "Listen to the spoken speech in this media file and produce timestamped Burmese SRT subtitle JSON entries." },
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Data
+                            }
+                        }
+                    ]
+                }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "id": { "type": "INTEGER" },
+                                "startTime": { "type": "STRING" },
+                                "endTime": { "type": "STRING" },
+                                "originalText": { "type": "STRING" },
+                                "translatedText": { "type": "STRING" }
+                            },
+                            "propertyOrdering": ["id", "startTime", "endTime", "originalText", "translatedText"]
+                        }
+                    }
+                }
+            };
+
+            const urlGenerator = (apiKey) => `https://generativelanguage.googleapis.com/v1beta/models/${targetModelId}:generateContent?key=${apiKey}`;
+
+            const data = await fetchWithRetry(urlGenerator, payload, { timeoutMs: 180000 });
+            const rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!rawJson) {
+                throw new Error("No speech output returned from AI model");
+            }
+
+            return JSON.parse(rawJson);
+        }
+
+        async function translateBatchWithGemini(chunkSubs, options) {
+            const modelKey = document.getElementById('modelSelect').value;
+            const modelConfig = modelInfoMap[modelKey] || modelInfoMap['model-2'];
+            const targetModelId = modelConfig.id || 'gemini-2.5-flash';
+
+            const systemPrompt = `You are an expert Burmese movie translator. 
+Your task is to translate numbered subtitles into natural, conversational, and culturally appropriate Burmese for a ${options.genre} genre video.
+Rules:
+1. Maintain exact block numbering [1], [2], etc.
+2. ${options.translateNames ? 'Translate proper names phonetically into Burmese characters.' : 'Keep English names original.'}
+3. ${options.reduceSpaces ? 'Do not add unnecessary spaces or blank lines.' : ''}
+4. ${options.customRules ? 'Additional rule: ' + options.customRules : ''}
+5. Return ONLY JSON array of strings corresponding to translated sentences in exact order. No markdown codeblock wrapper or extra commentary.
+Example Output Format: ["မြန်မာ ဘာသာပြန် စာကြောင်း ၁", "မြန်မာ ဘာသာပြန် စာကြောင်း ၂"]`;
+
+            const subtitleTextList = chunkSubs.map(s => s.originalText);
+
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `Translate these subtitle lines to Burmese: ${JSON.stringify(subtitleTextList)}`
+                    }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: { type: "STRING" }
+                    }
+                }
+            };
+
+            const urlGenerator = (apiKey) => `https://generativelanguage.googleapis.com/v1beta/models/${targetModelId}:generateContent?key=${apiKey}`;
+
+            const data = await fetchWithRetry(urlGenerator, payload, { timeoutMs: 60000 });
+            const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!rawText) {
+                throw new Error("No translation returned from AI model");
+            }
+
+            try {
+                const parsedResult = JSON.parse(rawText);
+                return parsedResult;
+            } catch (e) {
+                return rawText.split('\n').filter(line => line.trim().length > 0);
+            }
+        }
+
+        function downloadResultFile() {
+            if (state.subtitles.length === 0) return;
+
+            const format = document.querySelector('input[name="outputFormat"]:checked').value;
+            let fileContent = '';
+            let fileExtension = '.srt';
+
+            if (format === 'srt') {
+                fileExtension = '.srt';
+                state.subtitles.forEach((sub, i) => {
+                    const text = sub.translatedText ? sub.translatedText.trim() : (sub.originalText || '').trim();
+                    fileContent += `${i + 1}\n${sub.startTime} --> ${sub.endTime}\n${text}\n\n`;
+                });
+            } else if (format === 'ass') {
+                fileExtension = '.ass';
+                fileContent = `[Script Info]
+Title: Burmese SRT AI Export
+ScriptType: v4.00+
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Padauk,24,&H00FFFFFF,&H000000FF,&H00000000,&H60000000,-1,0,0,0,100,100,0,0,1,2,1,2,10,10,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n`;
+
+                state.subtitles.forEach((sub) => {
+                    const text = ((sub.translatedText || sub.originalText || '').trim()).replace(/\n/g, '\\N');
+                    fileContent += `Dialogue: 0,${formatTimeAss(sub.startTime)},${formatTimeAss(sub.endTime)},Default,,0,0,0,,${text}\n`;
+                });
+            }
+
+            const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = state.fileName.replace('.srt', fileExtension);
+            link.click();
+
+            showToast(`Exported file as ${link.download}!`, 'success');
+        }
+
+        function formatTimeAss(timeStr) {
+            if (!timeStr) return "0:00:00.00";
+            let cleaned = timeStr.replace(',', '.');
+            const parts = cleaned.split('.');
+            if (parts.length === 2) {
+                return parts[0] + '.' + parts[1].substring(0, 2);
+            }
+            return cleaned;
+        }
+    </script>
+</body>
+</html>
