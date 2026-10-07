@@ -1,10 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { authenticate, authenticated, generateVideoSrt, keyStatus, logout, me, saveKeys, translate, type ModelUsage } from './api';
 import { exportSrt, parseSrt, type Subtitle } from './srt';
 import './styles.css';
 
-const modelDefaults = { gemini: 'gemini-3.8-flash', grok: 'grok-4.7' } as const;
+const modelDefaults = { gemini: 'gemini-3.5-flash-lite', grok: 'grok-4.7' } as const;
+const freeGeminiModels = [
+  { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite (recommended)' },
+  { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash-Lite' },
+  { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
+] as const;
 const studioKeyUrl = 'https://aistudio.google.com/apikey';
 type Mode = 'translate' | 'video';
 
@@ -81,6 +86,7 @@ function App() {
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoElapsed, setVideoElapsed] = useState(0);
   const [videoPhase, setVideoPhase] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const mediaUrl = useMemo(() => mediaFile && mode === 'video' ? URL.createObjectURL(mediaFile) : '', [mediaFile, mode]);
 
@@ -133,6 +139,10 @@ function App() {
     if (isMedia) {
       setMediaFile(file);
       setSubtitles([]);
+      setLastVideoUsage(null);
+      setVideoProgress(0);
+      setVideoElapsed(0);
+      setVideoPhase('');
       setFileName(file.name.replace(/\.[^.]+$/, '') + '_burmese.srt');
       switchMode('video');
       setMessage(`${file.name} loaded for video-to-SRT generation.`);
@@ -150,6 +160,18 @@ function App() {
       setMessage(`${parsed.length} subtitle cues loaded.`);
     };
     reader.readAsText(file);
+  }
+
+  function clearVideoWorkspace() {
+    setMediaFile(null);
+    setSubtitles([]);
+    setLastVideoUsage(null);
+    setFileName('translated.srt');
+    setVideoProgress(0);
+    setVideoElapsed(0);
+    setVideoPhase('');
+    setMessage('Video workspace cleared. Upload another video or audio file to begin.');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   async function storeKeys() {
@@ -194,7 +216,7 @@ function App() {
       setVideoProgress(value => Math.max(value, 18));
       setVideoPhase('Uploading media to Gemini...');
       const result = await generateVideoSrt({
-        model: modelDefaults.gemini,
+        model,
         base64,
         mimeType: mediaFile.type || 'video/mp4',
         settings: { audioLanguage, outputStyle, genre, customRules: rules },
@@ -203,7 +225,7 @@ function App() {
       setLastVideoUsage(result.usage);
       setVideoProgress(100);
       setVideoPhase('Complete');
-      setMessage(`Generated ${result.subtitles.length} subtitle cues. Review and download the SRT.`);
+      setMessage(`Generated ${result.subtitles.length} subtitle cues with ${result.usage.model}. Review and download the SRT.`);
     } catch (reason) {
       setVideoPhase('Failed');
       setMessage(reason instanceof Error ? reason.message : 'Video-to-SRT generation failed.');
@@ -263,9 +285,17 @@ function App() {
                   <option value="grok">xAI Grok</option>
                 </select>
               </label>
-              <label>Model<input value={mode === 'video' ? modelDefaults.gemini : model} onChange={e => setModel(e.target.value)} disabled={mode === 'video'} /></label>
+              <label>Model
+                {provider === 'gemini' ? (
+                  <select value={model} onChange={e => setModel(e.target.value)}>
+                    {freeGeminiModels.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+                  </select>
+                ) : (
+                  <input value={model} onChange={e => setModel(e.target.value)} disabled={mode === 'video'} />
+                )}
+              </label>
             </div>
-            <p className="muted">{mode === 'video' ? 'Video generation uses Gemini multimodal input.' : 'SRT translation can use Gemini or Grok.'}</p>
+            <p className="muted">{mode === 'video' ? 'Free-tier Gemini models are tried in order, starting with your selection.' : 'Gemini 3.5 Flash-Lite is the default free-tier model. SRT translation can use Gemini or Grok.'}</p>
           </section>
 
           <section className="card key-card">
@@ -295,8 +325,9 @@ function App() {
         </aside>
 
         <section className="workarea">
+          {mode === 'video' && <div className="workspace-actions"><button className="secondary" disabled={busy} onClick={clearVideoWorkspace}>Start new video</button></div>}
           <div className="dropzone" onClick={() => document.getElementById('fileInput')?.click()} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); selectFile(e.dataTransfer.files[0]); }}>
-            <input id="fileInput" type="file" accept=".srt,.vtt,.txt,.mp4,.mkv,.avi,.webm,.mp3,.wav,.m4a" onChange={e => selectFile(e.target.files?.[0])} />
+            <input ref={fileInputRef} id="fileInput" type="file" accept=".srt,.vtt,.txt,.mp4,.mkv,.avi,.webm,.mp3,.wav,.m4a" onChange={e => selectFile(e.target.files?.[0])} />
             <h2>{mode === 'video' ? 'Drop video/audio here' : 'Drop subtitle file here'}</h2>
             <p>{mode === 'video' ? 'Supports MP4, MKV, WEBM, MP3, WAV, and M4A for Gemini video-to-SRT generation.' : 'Supports SRT, VTT, and TXT subtitle files for Burmese translation.'}</p>
             {(mediaFile || subtitles.length > 0) && <span>{mediaFile?.name ?? `${subtitles.length} subtitle cues loaded`}</span>}
@@ -324,9 +355,10 @@ function App() {
 
           {lastVideoUsage && (
             <section className="usage-card">
-              <div>
-                <h2>Last Video-to-SRT AI Usage</h2>
-                <p>Measured after the most recent Gemini media generation.</p>
+              <div className="usage-heading">
+                <div><h2>Last Video-to-SRT AI Usage</h2>
+                  <p>Measured after the most recent Gemini media generation.</p></div>
+                <button className="secondary" onClick={() => setLastVideoUsage(null)}>Clear usage</button>
               </div>
               <dl>
                 <div><dt>Model</dt><dd>{lastVideoUsage.model}</dd></div>

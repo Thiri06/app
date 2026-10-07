@@ -11,6 +11,7 @@ export type ModelUsage = {
   rateLimitHeaders: Record<string, string>;
   measuredAt: string;
 };
+const freeVideoModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.5-flash'];
 const prompt = (lines: string[], genre: string, rules: string) => `Translate each subtitle string into natural Burmese for a ${genre} production. Preserve line breaks inside an item. Return ONLY a JSON array of strings in exactly the same order. ${rules ? `Additional rules: ${rules}` : ''}\n\n${JSON.stringify(lines)}`;
 const subtitleSchema = {
   type: 'ARRAY',
@@ -109,20 +110,23 @@ export async function translate(provider: Provider, keys: string[], model: strin
 }
 export async function generateSrtFromMedia(keys: string[], model: string, payload: { base64: string; mimeType: string; audioLanguage: string; outputStyle: string; genre: string; customRules: string }) {
   let lastError: unknown;
-  for (const key of keys) try {
-    const response = await geminiMedia(key, model, payload);
-    const parsed: unknown = JSON.parse(response.text);
-    if (!Array.isArray(parsed)) throw new Error('Gemini returned an invalid subtitle payload.');
-    return {
-      subtitles: parsed.map((item, index) => ({
-        id: typeof item.id === 'number' ? item.id : index + 1,
-        startTime: String(item.startTime ?? ''),
-        endTime: String(item.endTime ?? ''),
-        originalText: String(item.originalText ?? ''),
-        translatedText: String(item.translatedText ?? item.originalText ?? ''),
-      })) satisfies Subtitle[],
-      usage: response.usage,
-    };
-  } catch (error) { lastError = error; }
+  const models = [model, ...freeVideoModels.filter(candidate => candidate !== model)];
+  for (const candidate of models) {
+    for (const key of keys) try {
+      const response = await geminiMedia(key, candidate, payload);
+      const parsed: unknown = JSON.parse(response.text);
+      if (!Array.isArray(parsed)) throw new Error('Gemini returned an invalid subtitle payload.');
+      return {
+        subtitles: parsed.map((item, index) => ({
+          id: typeof item.id === 'number' ? item.id : index + 1,
+          startTime: String(item.startTime ?? ''),
+          endTime: String(item.endTime ?? ''),
+          originalText: String(item.originalText ?? ''),
+          translatedText: String(item.translatedText ?? item.originalText ?? ''),
+        })) satisfies Subtitle[],
+        usage: response.usage,
+      };
+    } catch (error) { lastError = error; }
+  }
   throw lastError;
 }

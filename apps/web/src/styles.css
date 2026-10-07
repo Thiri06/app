@@ -29,6 +29,7 @@ a { color: inherit; }
 .topbar p, .muted { color: #94a3b8; font-size: .82rem; }
 .layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 1rem; align-items: start; }
 .sidebar, .workarea { display: grid; gap: 1rem; }
+.workspace-actions { display: flex; justify-content: flex-end; }
 .card, .dropzone, .progress-card, .model-progress, .usage-card, .editor { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 1rem; box-shadow: 0 12px 34px rgba(2, 6, 23, .18); }
 .eyebrow { color: #94a3b8; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-bottom: .65rem; }
 .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; padding: .25rem; background: #0b1220; border: 1px solid #334155; border-radius: 10px; }
@@ -57,6 +58,7 @@ a { color: inherit; }
 .model-progress.failed .progress-track div { background: #ef4444; }
 .model-progress p { margin: 0; color: #94a3b8; font-size: .8rem; line-height: 1.4; }
 .usage-card { display: grid; gap: .85rem; }
+.usage-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .usage-card h2 { margin-bottom: .2rem; }
 .usage-card p { margin-bottom: 0; }
 .usage-card dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; margin: 0; }
@@ -79,6 +81,7 @@ a { color: inherit; }
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
   .topbar, .editor-head, .progress-meta, .row { align-items: stretch; flex-direction: column; }
+  .usage-heading { align-items: stretch; flex-direction: column; }
   .usage-card dl { grid-template-columns: 1fr; }
   .columns { display: none; }
   .cue { grid-template-columns: 1fr; }
